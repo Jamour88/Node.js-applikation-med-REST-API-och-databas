@@ -9,13 +9,11 @@ const bodyParser = require('body-parser');
 
 const cors = require('cors');
 
-const Morgan = require('morgan');
 
-const logSymbols = require('log-symbols');
 
-const react = require('react');
 
-const dotenv = require('dotenv'(); 
+//ovanstående paket(ramverk dvs bibliotek) hamnar under package.json och dependencies. Dessa är alltså färdiga paket.
+
 //finns till för att skapa säker plats för känslig info.
 //sparas i .env-fil som jag placerar i gitignore.
 //jag vill inte att den syns på git.
@@ -24,19 +22,32 @@ const dotenv = require('dotenv'();
 require('dotenv').config();
 //ovanstående rad gör att jag kan läsa in variabler från .env-filen och använda dem i min kod. Jag kan nu få tillgång till DATABASE_URL med process.env.DATABASE_URL.
 //ALLTSÅ laddar miljövariabler från .env-filen
+//OBS OBS OBS OBS OBS!!!! är denna samma som nedan eller kan ersätta den koden? Kolla upp Jamour!
+//dotenv.config();
 
-//ovanstående paket(ramverk dvs bibliotek) hamnar under package.json och dependencies. Dessa är alltså färdiga paket.
+
 
 
 const app = express()
 //Denna rad skapar min Express-app(!)
 
-const port = 3000
-//Denna skapar egen kod/port för att sedan kopplas till min IP-kod. 3000 är en standardsiffra men man kan även använda annat nummer. 
+// const PORT = 60080
+// Ovanstående rad har jag behövt ta bort eftersom det annars blir två const i JS. Denna kod tar jag bort eftersom den enbart sätter porten till 60080 utan att behålla miljövariabler, se rad 
+//Denna skapar egen kod/port för att sedan konopplas till min IP-kod. 3000 är en standardsiffra men man kan även använda annat nummer men jag har problem att använda de vanliga port-koderna.  
+
+
+
+//här hämta PORT från miljövariabler dvs fr. min .env mapp som finns under rootmappen
+const PORT = process.env.PORT || 60080;
 
 app.listen(PORT, () => {
 })
-//här körs servern på http://localhost:3000.
+//här körs servern på http://localhost:60080.
+
+//Startar servern och lyssna på den definierade porten:
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}.`);
+});
 
 
 app.use(cors()); //Middleware, tillåter cors. middleware ska alltid finnas i index.js. Morgan är oxå en middleware fuktion som loggar olika req, dvs när det kommer get-requests.
@@ -58,12 +69,11 @@ mongoose.connect(process.env.DATABASE_URL, {
   //ovanstående ansluter till databasen (MongoDB)
 
 
-
-app.listen(3000, () => {
-    console.log("Server is running on port 3000.");
+app.listen(60080, () => {
+    console.log("Server is running on port 60080.");
 });
-//Här säger vi till servern att börja lyssna på port 3000(!)
-//Så varje gång vi besöker http://localhost:3000 i webbläsaren eller skickar en API-förfrågan till den porten kommer vår server att svara.
+//Här säger vi till servern att börja lyssna på port 60080(!)
+//Så varje gång vi besöker http://localhost:60080 i webbläsaren eller skickar en API-förfrågan till den porten kommer vår server att svara.
 
 
 
@@ -169,5 +179,3 @@ app.delete('/todos/:id', async (req, res) => {
         //fel
     }
 });
-
-

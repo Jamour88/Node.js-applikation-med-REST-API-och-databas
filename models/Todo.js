@@ -1,6 +1,6 @@
 //HÄR SKAPAR VI MONGOOSE-MODELLEN FÖR ATT VÅR TODO(!)
 
-const mngoose = require('mongoose');
+const mongoose = require('mongoose');
 
 const todoSchema = new mongoose.Schema({
     title: {
@@ -17,4 +17,4 @@ const todoSchema = new mongoose.Schema({
 
 module.exports = mongoose.model('Todo', todoSchema);
 
-//ATT GÖRA/INFO TILL MIG SJÄLV: Läs på mer om todo.js och obligatoriska koderna(!)
+//ATT GÖRA/INFO TILL MIG SJÄLV: Läs på mer om todo.js och obligatoriska koderna(!) sätt dig lite mer in i det
