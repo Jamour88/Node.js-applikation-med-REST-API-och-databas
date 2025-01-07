@@ -1,82 +1,66 @@
 const express = require('express');
 //express skapar min server.
 
-const mongoose = require('mongoose');
-//mongoose är som en organisatör, ska hantera databas alltså skapa modeller för att interagera med den datan, och sedan utföra operationer som att skapa, läsa, uppdatera och ta bort dokument i databasen.
 
 const bodyParser = require('body-parser');
 // bodyparser ska hantera inkommande jsondata dvs info.
 
-const cors = require('cors');
+
+// info till mig sj: ovanstående paket(ramverk dvs bibliotek) hamnar under package.json och dependencies. Dessa är alltså färdiga paket.
 
 
+const app = express();
+//Denna rad skapar min Express-app(!)
 
+// nedanstående rad har jag behövt ta bort eftersom det annars blir två const i JS. 
+// const PORT = 4000
+//Denna skapar alltså egen kod/port för att sedan konopplas till min IP-kod. 3000 är en standardsiffra men man kan även använda annat nummer men jag har problem att använda de vanliga port-koderna.  
+//Alltså istället använder jag koden nedan. Den hämtar PORT från miljövariabler dvs fr. min .env mapp som finns under rootmappen.
+const PORT = process.env.PORT || 4000;
 
-//ovanstående paket(ramverk dvs bibliotek) hamnar under package.json och dependencies. Dessa är alltså färdiga paket.
-
-//finns till för att skapa säker plats för känslig info.
-//sparas i .env-fil som jag placerar i gitignore.
-//jag vill inte att den syns på git.
-//.env kan läggas som separat fil i jsonpackage.
 
 require('dotenv').config();
 //ovanstående rad gör att jag kan läsa in variabler från .env-filen och använda dem i min kod. Jag kan nu få tillgång till DATABASE_URL med process.env.DATABASE_URL.
-//ALLTSÅ laddar miljövariabler från .env-filen
 //OBS OBS OBS OBS OBS!!!! är denna samma som nedan eller kan ersätta den koden? Kolla upp Jamour!
 //dotenv.config();
+//finns till för att skapa säker plats för känslig info.
+//sparas i .env-fil som jag placerar i gitignore?
+//jag vill inte att den syns på git.
+//.env kan läggas som separat fil i jsonpackage.
 
 
+const mongoose = require('mongoose');
+//mongoose är som en organisatör, ska hantera databas alltså skapa modeller för att interagera med den datan, och sedan utföra operationer som att skapa, läsa, uppdatera och ta bort dokument i databasen.
 
 
-const app = express()
-//Denna rad skapar min Express-app(!)
-
-// const PORT = 60080
-// Ovanstående rad har jag behövt ta bort eftersom det annars blir två const i JS. Denna kod tar jag bort eftersom den enbart sätter porten till 60080 utan att behålla miljövariabler, se rad 
-//Denna skapar egen kod/port för att sedan konopplas till min IP-kod. 3000 är en standardsiffra men man kan även använda annat nummer men jag har problem att använda de vanliga port-koderna.  
-
+mongoose.connect(process.env.DATABASE_URL)
+  .then(() => console.log('Ansluten till databasen'))
+  .catch(err => console.error('Fel vid anslutning till databasen:', err));
+  //ovanstående ansluter till databasen (MongoDB)
+  //I denna kod anropas process.env.DATABASE_URL för att hämta värdet av miljövariabeln och använda den i mongoose.connect().
 
 
-//här hämta PORT från miljövariabler dvs fr. min .env mapp som finns under rootmappen
-const PORT = process.env.PORT || 60080;
-
-app.listen(PORT, () => {
-})
-//här körs servern på http://localhost:60080.
-
-//Startar servern och lyssna på den definierade porten:
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}.`);
 });
+//den här startar servern.
+//den här är samma sak som nedanstående två rader ( att ha båda skapade konflikt):
+//app.listen(4000, () => {
+//console.log("Server is running on port 4000.");
+//observera att emplate literals (${}) ger ett enkelt och läsbart sätt att infoga variabler i strängar,
+//Även denna kod hade funkat: console.log('Servern kör på port ' + port);
 
 
-app.use(cors()); //Middleware, tillåter cors. middleware ska alltid finnas i index.js. Morgan är oxå en middleware fuktion som loggar olika req, dvs när det kommer get-requests.
-
-app.use(bodyParser.json());
+app.use(express.json());
+//ovanstående rad ersattes med: app.use(bodyParser.json()); detta eftersom express redan har inbyggd express.json
 //middleware, denna läser json-data i post-requests
 //läser jsondata i förfrågningar
 //Body-parser fungerar som den som öppnar och läser innehållet i ett paket (data från en POST-förfrågan).
 
 
-mongoose.connect(process.env.DATABASE_URL, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-  }).then(() => {
-    console.log("Connected to the database.");
-  }).catch((err) => {
-    console.error("Database connection error:", err);
-  });
-  //ovanstående ansluter till databasen (MongoDB)
 
 
-app.listen(60080, () => {
-    console.log("Server is running on port 60080.");
-});
-//Här säger vi till servern att börja lyssna på port 60080(!)
-//Så varje gång vi besöker http://localhost:60080 i webbläsaren eller skickar en API-förfrågan till den porten kommer vår server att svara.
-
-
-
+  
 
 //NEDAN SKAPAR JAG API FÖR ATT HANTERA MINA TODO:S(!)
 
@@ -86,12 +70,14 @@ app.listen(60080, () => {
 //PUT /todos/:id: Uppdatera en Todo.
 //DELETE /todos/:id: Radera en Todo.
 
+app.get('/', (req, res) => {
+    res.send('Välkommen till Jamours Todo API App :-) ');
+}); //Den här definierar enkel GET-route som svarar på root-URL:en.
 
-
-// Nedan importera modellen från todo.js som finns i min models-mapp
+// Nedan importerar modellen från todo.js som finns i min models-mapp
 const Todo = require('./models/Todo');
 
-// Nedan skapa en ny Todo (POST):
+//Nedan skapar min en ny Todo (POST):
 
 app.post('/todos', async (req, res) => {
     try {

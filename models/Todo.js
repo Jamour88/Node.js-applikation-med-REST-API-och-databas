@@ -1,20 +1,18 @@
-//HÄR SKAPAR VI MONGOOSE-MODELLEN FÖR ATT VÅR TODO(!)
+//SåHÄR SKAPAR MAN EN MODELL FÖR TODO:S
+
 
 const mongoose = require('mongoose');
 
 const todoSchema = new mongoose.Schema({
-    title: {
-        type: String,
-        required: true //Titeln är obligatorisk
-        //TODO-OBJEKT SOM T.EX. KÖP MODERMJÖLKSERSÄTTNING(!)
-    },
-    completed: {
-        type: Boolean,
-        default: false //Standardvärdet för completed är false (inte klart)
-        //BOOLEAN ANGER OM TODO:N ÄR KLAR ELLER INTE(!)
-    }
+    title: { type: String, required: true},
+    //Titeln är obligatorisk
+    //TODO-OBJEKT SOM T.EX. KÖP MODERMJÖLKSERSÄTTNING(!)
+    completed: { type: Boolean, default: false }
 });
+    //Standardvärdet för completed är false (inte klart)
+    //BOOLEAN ANGER OM TODO:N ÄR KLAR ELLER INTE(!)
+    
+
 
 module.exports = mongoose.model('Todo', todoSchema);
 
-//ATT GÖRA/INFO TILL MIG SJÄLV: Läs på mer om todo.js och obligatoriska koderna(!) sätt dig lite mer in i det
