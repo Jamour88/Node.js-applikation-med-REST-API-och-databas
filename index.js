@@ -93,7 +93,7 @@ app.post('/todos', async (req, res) => {
         res.status(201).json(todo);
         //Returnerar den skapade Todo:n som svar
     } catch (err) {
-        res.status(400).json({ error: 'Failed to create todo.' });
+        res.status(400).json({ error: 'Misslyckade att hämta todo.' });
         //Felhantering
     }
 });
