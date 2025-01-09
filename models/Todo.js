@@ -3,6 +3,7 @@
 
 const mongoose = require('mongoose');
 
+//// Definierar Todo-schema:
 const todoSchema = new mongoose.Schema({
     title: { type: String, required: true},
     //Titeln är obligatorisk
@@ -10,9 +11,10 @@ const todoSchema = new mongoose.Schema({
     completed: { type: Boolean, default: false }
 });
     //Standardvärdet för completed är false (inte klart)
-    //BOOLEAN ANGER OM TODO:N ÄR KLAR ELLER INTE(!)
+    //BOOLEAN (true false) ANGER OM TODO:N ÄR KLAR ELLER INTE(!)
     
 
 
 module.exports = mongoose.model('Todo', todoSchema);
+//den här exporterar modellen för användning i andra filer
 

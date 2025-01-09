@@ -1,10 +1,9 @@
 const express = require('express');
 //express skapar min server.
 
-
 const bodyParser = require('body-parser');
 // bodyparser ska hantera inkommande jsondata dvs info.
-
+//importerar nödvändiga moduler
 
 // info till mig sj: ovanstående paket(ramverk dvs bibliotek) hamnar under package.json och dependencies. Dessa är alltså färdiga paket.
 
@@ -32,10 +31,16 @@ require('dotenv').config();
 const mongoose = require('mongoose');
 //mongoose är som en organisatör, ska hantera databas alltså skapa modeller för att interagera med den datan, och sedan utföra operationer som att skapa, läsa, uppdatera och ta bort dokument i databasen.
 
+//middleware, denna läser json-data i post-requests
+app.use(express.json());
+//ovanstående rad ersattes med: app.use(bodyParser.json()); detta eftersom express redan har inbyggd express.json
+//läser jsondata i förfrågningar
+//Body-parser fungerar som den som öppnar och läser innehållet i ett paket (data från en POST-förfrågan).
+
 
 mongoose.connect(process.env.DATABASE_URL)
-  .then(() => console.log('Bra! Ansluten till databasen!!!'))
-  .catch(err => console.error('Aj då! Fel vid anslutning till databasen:', err));
+  .then(() => console.log('Jättebra! Ansluten till databasen MongoDB!!!'))
+  .catch(err => console.error('Aj då! Fel vid anslutning till databasen MongoDB!', err));
   //ovanstående ansluter till databasen (MongoDB)
   //I denna kod anropas process.env.DATABASE_URL för att hämta värdet av miljövariabeln och använda den i mongoose.connect().
 
@@ -50,16 +55,6 @@ app.listen(PORT, () => {
 //Även denna kod hade funkat: console.log('Servern kör på port ' + port);
 
 
-app.use(express.json());
-//ovanstående rad ersattes med: app.use(bodyParser.json()); detta eftersom express redan har inbyggd express.json
-//är en middleware, denna läser json-data i post-requests
-//läser jsondata i förfrågningar
-//Body-parser fungerar som den som öppnar och läser innehållet i ett paket (data från en POST-förfrågan).
-
-
-
-
-  
 
 //NEDAN SKAPAR JAG API FÖR ATT HANTERA MINA TODO:S(!)
 
@@ -69,105 +64,91 @@ app.use(express.json());
 //PUT /todos/:id: Uppdatera en Todo.
 //DELETE /todos/:id: Radera en Todo.
 
+// Modell för inköpslistan (denna skulle jag kunnat ha haft i separat fil oxå)
+const ShoppingItem = mongoose.model('ShoppingItem', new mongoose.Schema({
+    name: { type: String, required: true },
+    quantity: { type: Number, required: true },
+    purchased: { type: Boolean, default: false }
+}));
+
+
+
+  //root-routes (skulle kunnat ha haft egen fil)
 app.get('/', (req, res) => {
-    res.send('Varmt välkommen till Jamours Todo API App :-D ');
+    res.send('Varmt välkommen till din inköpslista API :) ');
 }); //Den här definierar enkel GET-route som svarar på root-URL:en.
+
 
 // Nedan importerar modellen från todo.js som finns i min models-mapp
 const Todo = require('./models/Todo');
 
-//Nedan skapar en ny Todo (POST):
 
-app.post('/todos', async (req, res) => {
+//Nedan skapar en ny Todo/ alltså ny artikel (POST):
+//endpoints har blivit shoppinglist
+
+app.post('/shopping-list', async (req, res) => {
     try {
-        console.log(req.body);
-        // Logga inkommande data
-        const { title } = req.body;
-        //Hämtar titel från JSON-body dvs express.json 
-        if (!title) {
-            throw new Error('Titel saknas, skriv title okay ;)');
-        }
-        const todo = new Todo({
-            title,
-            completed: false
-            //Skapa en ny Todo med completed = false
-        });
-        await todo.save();
-        //Sparar den nya Todo:n i databasen
-        res.status(201).json(todo);
-        //Returnerar den skapade Todo:n som svar
+      const { name, quantity } = req.body;
+      if (!name || !quantity) {
+        return res.status(400).json({ error: 'HALLÅ! Namn och kvantitet krävs!' });
+      }
+      const item = new ShoppingItem({ name, quantity });
+      await item.save();
+      res.status(201).json(item);
     } catch (err) {
-        console.error(err);
-        // Logga felet för att se vad som gick fel
-        res.status(400).json({ error: ' Oooops! Misslyckade tyvärr att hämta todo!!!' });
-        //Felhantering
+      res.status(500).json({ error: 'Oooops! Misslyckades att skapa artikel!!!' });
     }
-});
+  });
 
-//Nedan hämtar alla Todos (GET):
+//Nedan hämtar alla Todos dvs alla artiklar (GET):
 
-app.get('/todos', async (req, res) => {
+app.get('/shopping-list', async (req, res) => {
     try {
-        const todos = await Todo.find();
-        //Hämtar alla Todos från databasen
-        res.status(200).json(todos); 
-        //Returnera alla Todos som JSON
+      const items = await ShoppingItem.find();
+      res.status(200).json(items);
     } catch (err) {
-        res.status(500).json({ error: 'Aj då! Misslyckade att fetch:a todos!!!' });
-        //Felhantering
+      res.status(500).json({ error: 'Aj då! Misslyckades att hämta artiklar!' });
     }
-});
+  });
 
-//Nedan hämtar en Todo med ID (GET):
+//Nedan hämtar en Todo dvs hämtar en specifik artikel (GET):
 
-app.get('/todos/:id', async (req, res) => {
+app.get('/shopping-list/:id', async (req, res) => {
     try {
-        const todo = await Todo.findById(req.params.id);
-        //Hämta Todo:n med specifikt ID
-        if (!todo) {
-            return res.status(404).json({ error: 'Todo not har inte hittats!!!' });
-            //Om Todo:n inte finns ska det returneras 404
-        }
-        res.status(200).json(todo);
-        //Returnera Todo:n som JSON
+      const item = await ShoppingItem.findById(req.params.id);
+      if (!item) {
+        return res.status(404).json({ error: 'Oooops! Artikeln hittades inte!' });
+      }
+      res.status(200).json(item);
     } catch (err) {
-        res.status(500).json({ error: 'Misslyckade att fetch:a todo!' });
-        //Felhantering
+      res.status(500).json({ error: 'Urk då! Misslyckades att hämta artikeln!' });
     }
-});
+  });
 
-// Nedan uppdatera en Todo (PUT):
+// Nedan uppdatera en Todo dvs uppdatera artikel (PUT):
 
-app.put('/todos/:id', async (req, res) => {
+app.put('/shopping-list/:id', async (req, res) => {
     try {
-        const todo = await Todo.findByIdAndUpdate(req.params.id, req.body, { new: true });
-        //Uppdatera Todo:n med nytt innehåll
-        if (!todo) {
-            return res.status(404).json({ error: 'Todo inte hittad tyvärr!!!' }); 
-            //Om Todo:n inte finns, returnera 404
-        }
-        res.status(200).json(todo);
-        //Returnerar den uppdaterade Todo:n
+      const item = await ShoppingItem.findByIdAndUpdate(req.params.id, req.body, { new: true });
+      if (!item) {
+        return res.status(404).json({ error: 'Synd för dig för artikeln hittades inte!' });
+      }
+      res.status(200).json(item);
     } catch (err) {
-        res.status(400).json({ error: 'Misslyckade tyvärr att uppdatera todo!!!' }); 
-        //Felhantering
+      res.status(500).json({ error: 'Ack! Misslyckades att uppdatera artikeln!' });
     }
-});
+  });
 
-// Nedan raderar en Todo (DELETE):
+// Nedan raderar en Todo dvs artikeln (DELETE):
 
-app.delete('/todos/:id', async (req, res) => {
+app.delete('/shopping-list/:id', async (req, res) => {
     try {
-        const todo = await Todo.findByIdAndDelete(req.params.id);
-        //Raderar Todo:n med specifikt ID
-        if (!todo) {
-            return res.status(404).json({ error: 'SUCK! Todo är inte hittad!!!' });
-            //Om Todo:n inte finns ska returnera 404
-        }
-        res.status(200).json({ message: 'Tack - Todo är nu raderad :)' });
-        //Bekräftelse att Todo:n är raderad
+      const item = await ShoppingItem.findByIdAndDelete(req.params.id);
+      if (!item) {
+        return res.status(404).json({ error: 'Artikeln hittades inte!' });
+      }
+      res.status(200).json({ message: 'Okej! Artikeln raderades!' });
     } catch (err) {
-        res.status(500).json({ error: 'AJ! Misslyckade att radera todo :(' });
-        //fel
+      res.status(500).json({ error: 'Ooops! Misslyckades att radera artikeln!' });
     }
-});
+  });
