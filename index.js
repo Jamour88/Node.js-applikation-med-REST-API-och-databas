@@ -34,11 +34,10 @@ const mongoose = require('mongoose');
 
 
 mongoose.connect(process.env.DATABASE_URL)
-  .then(() => console.log('Ansluten till databasen'))
-  .catch(err => console.error('Fel vid anslutning till databasen:', err));
+  .then(() => console.log('Bra! Ansluten till databasen!!!'))
+  .catch(err => console.error('Aj då! Fel vid anslutning till databasen:', err));
   //ovanstående ansluter till databasen (MongoDB)
   //I denna kod anropas process.env.DATABASE_URL för att hämta värdet av miljövariabeln och använda den i mongoose.connect().
-
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}.`);
@@ -53,7 +52,7 @@ app.listen(PORT, () => {
 
 app.use(express.json());
 //ovanstående rad ersattes med: app.use(bodyParser.json()); detta eftersom express redan har inbyggd express.json
-//middleware, denna läser json-data i post-requests
+//är en middleware, denna läser json-data i post-requests
 //läser jsondata i förfrågningar
 //Body-parser fungerar som den som öppnar och läser innehållet i ett paket (data från en POST-förfrågan).
 
@@ -71,18 +70,23 @@ app.use(express.json());
 //DELETE /todos/:id: Radera en Todo.
 
 app.get('/', (req, res) => {
-    res.send('Välkommen till Jamours Todo API App :-) ');
+    res.send('Varmt välkommen till Jamours Todo API App :-D ');
 }); //Den här definierar enkel GET-route som svarar på root-URL:en.
 
 // Nedan importerar modellen från todo.js som finns i min models-mapp
 const Todo = require('./models/Todo');
 
-//Nedan skapar min en ny Todo (POST):
+//Nedan skapar en ny Todo (POST):
 
 app.post('/todos', async (req, res) => {
     try {
+        console.log(req.body);
+        // Logga inkommande data
         const { title } = req.body;
-        //Hämtar titel från JSON-body
+        //Hämtar titel från JSON-body dvs express.json 
+        if (!title) {
+            throw new Error('Titel saknas, skriv title okay ;)');
+        }
         const todo = new Todo({
             title,
             completed: false
@@ -93,7 +97,9 @@ app.post('/todos', async (req, res) => {
         res.status(201).json(todo);
         //Returnerar den skapade Todo:n som svar
     } catch (err) {
-        res.status(400).json({ error: 'Misslyckade att hämta todo.' });
+        console.error(err);
+        // Logga felet för att se vad som gick fel
+        res.status(400).json({ error: ' Oooops! Misslyckade tyvärr att hämta todo!!!' });
         //Felhantering
     }
 });
@@ -107,7 +113,7 @@ app.get('/todos', async (req, res) => {
         res.status(200).json(todos); 
         //Returnera alla Todos som JSON
     } catch (err) {
-        res.status(500).json({ error: 'Failed to fetch todos.' });
+        res.status(500).json({ error: 'Aj då! Misslyckade att fetch:a todos!!!' });
         //Felhantering
     }
 });
@@ -119,13 +125,13 @@ app.get('/todos/:id', async (req, res) => {
         const todo = await Todo.findById(req.params.id);
         //Hämta Todo:n med specifikt ID
         if (!todo) {
-            return res.status(404).json({ error: 'Todo not found.' });
+            return res.status(404).json({ error: 'Todo not har inte hittats!!!' });
             //Om Todo:n inte finns ska det returneras 404
         }
         res.status(200).json(todo);
         //Returnera Todo:n som JSON
     } catch (err) {
-        res.status(500).json({ error: 'Failed to fetch todo.' });
+        res.status(500).json({ error: 'Misslyckade att fetch:a todo!' });
         //Felhantering
     }
 });
@@ -137,13 +143,13 @@ app.put('/todos/:id', async (req, res) => {
         const todo = await Todo.findByIdAndUpdate(req.params.id, req.body, { new: true });
         //Uppdatera Todo:n med nytt innehåll
         if (!todo) {
-            return res.status(404).json({ error: 'Todo not found.' }); 
+            return res.status(404).json({ error: 'Todo inte hittad tyvärr!!!' }); 
             //Om Todo:n inte finns, returnera 404
         }
         res.status(200).json(todo);
         //Returnerar den uppdaterade Todo:n
     } catch (err) {
-        res.status(400).json({ error: 'Failed to update todo.' }); 
+        res.status(400).json({ error: 'Misslyckade tyvärr att uppdatera todo!!!' }); 
         //Felhantering
     }
 });
@@ -155,13 +161,13 @@ app.delete('/todos/:id', async (req, res) => {
         const todo = await Todo.findByIdAndDelete(req.params.id);
         //Raderar Todo:n med specifikt ID
         if (!todo) {
-            return res.status(404).json({ error: 'Todo not found.' });
+            return res.status(404).json({ error: 'SUCK! Todo är inte hittad!!!' });
             //Om Todo:n inte finns ska returnera 404
         }
-        res.status(200).json({ message: 'Todo deleted successfully.' });
+        res.status(200).json({ message: 'Tack - Todo är nu raderad :)' });
         //Bekräftelse att Todo:n är raderad
     } catch (err) {
-        res.status(500).json({ error: 'Failed to delete todo.' });
+        res.status(500).json({ error: 'AJ! Misslyckade att radera todo :(' });
         //fel
     }
 });
