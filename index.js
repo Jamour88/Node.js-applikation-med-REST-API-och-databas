@@ -39,22 +39,27 @@ app.use(express.json());
 
 
 mongoose.connect(process.env.DATABASE_URL)
-  .then(() => console.log('Jättebra! Ansluten till databasen MongoDB!!!'))
+  .then(() => console.log('Jättebra! Äntligen är du ansluten till databasen MongoDB utan massa bugg!!!'))
   .catch(err => console.error('Aj då! Fel vid anslutning till databasen MongoDB!', err));
   //ovanstående ansluter till databasen (MongoDB)
   //I denna kod anropas process.env.DATABASE_URL för att hämta värdet av miljövariabeln och använda den i mongoose.connect().
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}.`);
-});
-//den här startar servern.
-//den här är samma sak som nedanstående två rader ( att ha båda skapade konflikt):
-//app.listen(4000, () => {
-//console.log("Server is running on port 4000.");
-//observera att emplate literals (${}) ger ett enkelt och läsbart sätt att infoga variabler i strängar,
-//Även denna kod hade funkat: console.log('Servern kör på port ' + port);
+  const server = app.listen(PORT, () => { 
+    console.log(`Server is running on port ${PORT}.`);
+  });
+  
+  server.on('error', handleError);
+  
+  function handleError(err) {
+      if (err.code === 'EADDRINUSE') {
+          console.error(`Port ${PORT} ANVÄNDS REDAN(!).`);
+      } else {
+          console.error('Server encountered an error:', err);
+      }
+  }
+  
 
-
+//error-lyssnare
 
 //NEDAN SKAPAR JAG API FÖR ATT HANTERA MINA TODO:S(!)
 
@@ -78,27 +83,37 @@ app.get('/', (req, res) => {
     res.send('Varmt välkommen till din inköpslista API :) ');
 }); //Den här definierar enkel GET-route som svarar på root-URL:en.
 
+// Lokal array för att spara artiklar
+const shoppingList = [];
 
 // Nedan importerar modellen från todo.js som finns i min models-mapp
 const Todo = require('./models/Todo');
 
 
 //Nedan skapar en ny Todo/ alltså ny artikel (POST):
-//endpoints har blivit shoppinglist
+//JAG ANVÄNDER SHOPPINGITEM SOM ENDPOINTS
+
+
 
 app.post('/shopping-list', async (req, res) => {
     try {
-      const { name, quantity } = req.body;
-      if (!name || !quantity) {
-        return res.status(400).json({ error: 'HALLÅ! Namn och kvantitet krävs!' });
-      }
-      const item = new ShoppingItem({ name, quantity });
-      await item.save();
-      res.status(201).json(item);
+        const items = req.body;
+
+        // Kontrollera om en array skickas
+        if (!Array.isArray(items)) {
+            return res.status(400).json({ error: 'Hoho! Förväntar en array av artiklar!' });
+        }
+
+        // Skapa alla artiklar
+        const createdItems = await ShoppingItem.insertMany(items);
+
+        res.status(201).json(createdItems);
     } catch (err) {
-      res.status(500).json({ error: 'Oooops! Misslyckades att skapa artikel!!!' });
+        res.status(500).json({ error: 'Oooops!, Misslyckades att skapa artiklar!' });
     }
-  });
+});
+
+
 
 //Nedan hämtar alla Todos dvs alla artiklar (GET):
 
@@ -147,8 +162,8 @@ app.delete('/shopping-list/:id', async (req, res) => {
       if (!item) {
         return res.status(404).json({ error: 'Artikeln hittades inte!' });
       }
-      res.status(200).json({ message: 'Okej! Artikeln raderades!' });
+      res.status(200).json({ message: 'Ja ja, okej! Artikeln raderades då!' });
     } catch (err) {
-      res.status(500).json({ error: 'Ooops! Misslyckades att radera artikeln!' });
+      res.status(500).json({ error: 'Ooops! Misslyckade att radera artikeln!' });
     }
   });
